@@ -134,8 +134,8 @@ namespace BasicsOfCSharp
         Circle myCircle = new Circle(10);
         Console.WriteLine($"{myCircle.GetArea()}");
 
-        Circle unitCircle = new Circle(1);
-        Console.WriteLine($"{}");
+        Circle unitCurcle = new Circle(1);
+        Console.WriteLine($"{myCircle.GetDiameter}");
 
 
 
