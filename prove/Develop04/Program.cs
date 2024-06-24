@@ -1,159 +1,110 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
-using Newtonsoft.Json;
 
-namespace JournalApp
+class JournalEntry
 {
-    public class JournalEntry
-    {
-        public string Date { get; set; }
-        public string Prompt { get; set; }
-        public string Response { get; set; }
+    public DateTime Date { get; set; }
+    public string Content { get; set; }
+    public List<string> Notes { get; set; }
 
-        public JournalEntry(string prompt, string response)
+    public JournalEntry(string content)
+    {
+        Date = DateTime.Now;
+        Content = content;
+        Notes = new List<string>();
+    }
+
+    public void AddNote(string note)
+    {
+        Notes.Add(note);
+    }
+
+    public override string ToString()
+    {
+        string notes = Notes.Count > 0 ? string.Join("\n  - ", Notes) : "No notes";
+        return $"{Date.ToString("yyyy-MM-dd HH:mm:ss")}: {Content}\nNotes:\n  - {notes}";
+    }
+}
+
+class Journal
+{
+    private List<JournalEntry> entries = new List<JournalEntry>();
+
+    public void AddEntry(string content)
+    {
+        entries.Add(new JournalEntry(content));
+    }
+
+    public void AddNoteToEntry(int entryIndex, string note)
+    {
+        if (entryIndex >= 0 && entryIndex < entries.Count)
         {
-            Date = DateTime.Today.ToString("yyyy-MM-dd");
-            Prompt = prompt;
-            Response = response;
+            entries[entryIndex].AddNote(note);
+        }
+        else
+        {
+            Console.WriteLine("Invalid entry index.");
         }
     }
 
-    public class Journal
+    public void ViewEntries()
     {
-        public List<JournalEntry> Entries { get; set; } = new List<JournalEntry>();
-
-        public void AddEntry(JournalEntry entry)
+        if (entries.Count == 0)
         {
-            Entries.Add(entry);
+            Console.WriteLine("No entries found.");
         }
-
-        public void DisplayEntries()
+        else
         {
-            if (Entries.Count == 0)
+            for (int i = 0; i < entries.Count; i++)
             {
-                Console.WriteLine("No entries found.");
-                return;
+                Console.WriteLine($"Entry {i + 1}:\n{entries[i]}");
             }
-
-            foreach (var entry in Entries)
-            {
-                Console.WriteLine($"Date: {entry.Date}");
-                Console.WriteLine($"Prompt: {entry.Prompt}");
-                Console.WriteLine($"Response: {entry.Response}");
-                Console.WriteLine(new string('-', 40));
-            }
-        }
-
-        public void SaveToFile(string filename)
-        {
-            var json = JsonConvert.SerializeObject(Entries, Formatting.Indented);
-            File.WriteAllText(filename, json);
-            Console.WriteLine($"Journal saved to {filename}");
-        }
-
-        public void LoadFromFile(string filename)
-        {
-            if (!File.Exists(filename))
-            {
-                Console.WriteLine("File not found.");
-                return;
-            }
-
-            var json = File.ReadAllText(filename);
-            Entries = JsonConvert.DeserializeObject<List<JournalEntry>>(json) ?? new List<JournalEntry>();
-            Console.WriteLine($"Journal loaded from {filename}");
         }
     }
+}
 
-    public class JournalApp
+class Program
+{
+    static void Main(string[] args)
     {
-        private static readonly List<string> Prompts = new List<string>
-        {
-            "Who was the most interesting person I interacted with today?",
-            "What was the best part of my day?",
-            "How did I see the hand of the Lord in my life today?",
-            "What was the strongest emotion I felt today?",
-            "If I had one thing I could do over today, what would it be?",
-            "What new thing did I learn today?",
-            "What made me smile today?",
-            "What challenges did I face today and how did I overcome them?",
-            "What am I grateful for today?",
-            "What did I do today to work towards my goals?"
-        };
+        Journal journal = new Journal();
+        bool exit = false;
 
-        private Journal _journal = new Journal();
-
-        public void ShowMenu()
+        while (!exit)
         {
-            while (true)
+            Console.WriteLine("Journal Menu:");
+            Console.WriteLine("1. Add Entry");
+            Console.WriteLine("2. View Entries");
+            Console.WriteLine("3. Add Note to Entry");
+            Console.WriteLine("4. Exit");
+            Console.Write("Choose an option: ");
+
+            string choice = Console.ReadLine();
+
+            switch (choice)
             {
-                Console.WriteLine("\nJournal Menu");
-                Console.WriteLine("1. New Entry");
-                Console.WriteLine("2. Display Entries");
-                Console.WriteLine("3. Save Journal to File");
-                Console.WriteLine("4. Load Journal from File");
-                Console.WriteLine("5. Exit");
-                Console.Write("Choose an option: ");
-
-                var choice = Console.ReadLine();
-
-                switch (choice)
-                {
-                    case "1":
-                        NewEntry();
-                        break;
-                    case "2":
-                        _journal.DisplayEntries();
-                        break;
-                    case "3":
-                        SaveJournalToFile();
-                        break;
-                    case "4":
-                        LoadJournalFromFile();
-                        break;
-                    case "5":
-                        return;
-                    default:
-                        Console.WriteLine("Invalid choice, please try again.");
-                        break;
-                }
+                case "1":
+                    Console.Write("Enter your journal entry: ");
+                    string content = Console.ReadLine();
+                    journal.AddEntry(content);
+                    break;
+                case "2":
+                    journal.ViewEntries();
+                    break;
+                case "3":
+                    Console.Write("Enter the entry number to add a note to: ");
+                    int entryIndex = int.Parse(Console.ReadLine()) - 1;
+                    Console.Write("Enter your note: ");
+                    string note = Console.ReadLine();
+                    journal.AddNoteToEntry(entryIndex, note);
+                    break;
+                case "4":
+                    exit = true;
+                    break;
+                default:
+                    Console.WriteLine("Invalid choice. Please try again.");
+                    break;
             }
-        }
-
-        private void NewEntry()
-        {
-            var random = new Random();
-            var prompt = Prompts[random.Next(Prompts.Count)];
-            Console.WriteLine($"Prompt: {prompt}");
-            Console.Write("Your response: ");
-            var response = Console.ReadLine();
-            var entry = new JournalEntry(prompt, response);
-            _journal.AddEntry(entry);
-            Console.WriteLine("Entry added.");
-        }
-
-        private void SaveJournalToFile()
-        {
-            Console.Write("Enter filename to save journal: ");
-            var filename = Console.ReadLine();
-            _journal.SaveToFile(filename);
-        }
-
-        private void LoadJournalFromFile()
-        {
-            Console.Write("Enter filename to load journal: ");
-            var filename = Console.ReadLine();
-            _journal.LoadFromFile(filename);
-        }
-    }
-
-    class Program
-    {
-        static void Main(string[] args)
-        {
-            var app = new JournalApp();
-            app.ShowMenu();
         }
     }
 }
