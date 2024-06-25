@@ -2,8 +2,24 @@ using System;
 
 class Program
 {
-    static void Main(string[] args)
-    {
-        Console.WriteLine("Hello Develop03 World!");
-    }
+
+}
+class Scripture
+// words <list>: string
+// get script
+{
+
+}
+class Refrence
+// book: string
+// chapter: int
+// verse <list>: int
+{
+
+}
+class Word
+// words: string
+// parsescript(verse);
+{
+
 }
