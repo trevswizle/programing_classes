@@ -1,110 +1,191 @@
 using System;
 using System.Collections.Generic;
-
-class JournalEntry
-{
-    public DateTime Date { get; set; }
-    public string Content { get; set; }
-    public List<string> Notes { get; set; }
-
-    public JournalEntry(string content)
-    {
-        Date = DateTime.Now;
-        Content = content;
-        Notes = new List<string>();
-    }
-
-    public void AddNote(string note)
-    {
-        Notes.Add(note);
-    }
-
-    public override string ToString()
-    {
-        string notes = Notes.Count > 0 ? string.Join("\n  - ", Notes) : "No notes";
-        return $"{Date.ToString("yyyy-MM-dd HH:mm:ss")}: {Content}\nNotes:\n  - {notes}";
-    }
-}
-
-class Journal
-{
-    private List<JournalEntry> entries = new List<JournalEntry>();
-
-    public void AddEntry(string content)
-    {
-        entries.Add(new JournalEntry(content));
-    }
-
-    public void AddNoteToEntry(int entryIndex, string note)
-    {
-        if (entryIndex >= 0 && entryIndex < entries.Count)
-        {
-            entries[entryIndex].AddNote(note);
-        }
-        else
-        {
-            Console.WriteLine("Invalid entry index.");
-        }
-    }
-
-    public void ViewEntries()
-    {
-        if (entries.Count == 0)
-        {
-            Console.WriteLine("No entries found.");
-        }
-        else
-        {
-            for (int i = 0; i < entries.Count; i++)
-            {
-                Console.WriteLine($"Entry {i + 1}:\n{entries[i]}");
-            }
-        }
-    }
-}
+using System.Threading;
 
 class Program
 {
     static void Main(string[] args)
     {
-        Journal journal = new Journal();
-        bool exit = false;
-
-        while (!exit)
+        while (true)
         {
-            Console.WriteLine("Journal Menu:");
-            Console.WriteLine("1. Add Entry");
-            Console.WriteLine("2. View Entries");
-            Console.WriteLine("3. Add Note to Entry");
+            Console.Clear();
+            Console.WriteLine("Choose an activity:");
+            Console.WriteLine("1. Breathing Activity");
+            Console.WriteLine("2. Reflection Activity");
+            Console.WriteLine("3. Listing Activity");
             Console.WriteLine("4. Exit");
-            Console.Write("Choose an option: ");
 
             string choice = Console.ReadLine();
+            Activity activity = null;
 
             switch (choice)
             {
                 case "1":
-                    Console.Write("Enter your journal entry: ");
-                    string content = Console.ReadLine();
-                    journal.AddEntry(content);
+                    activity = new Breath();
                     break;
                 case "2":
-                    journal.ViewEntries();
+                    activity = new Reflecting();
                     break;
                 case "3":
-                    Console.Write("Enter the entry number to add a note to: ");
-                    int entryIndex = int.Parse(Console.ReadLine()) - 1;
-                    Console.Write("Enter your note: ");
-                    string note = Console.ReadLine();
-                    journal.AddNoteToEntry(entryIndex, note);
+                    activity = new Listing();
                     break;
                 case "4":
-                    exit = true;
-                    break;
+                    return;
                 default:
                     Console.WriteLine("Invalid choice. Please try again.");
-                    break;
+                    continue;
             }
+
+            activity.StartActivity();
         }
+    }
+}
+
+class Activity
+// Create methods for displaying starting and ending messages, pausing with animation, and an abstract method for performing the activity.
+{
+    protected string standardMessage = "Prepare to begin...";
+    protected string description;
+    protected string endingMessage = "Good job! You've completed the activity.";
+    protected int duration;
+
+    public void StartActivity()
+    {
+        DisplayStartingMessage();
+        PerformActivity();
+        DisplayEndingMessage();
+    }
+
+    protected void DisplayStartingMessage()
+    {
+        Console.Clear();
+        Console.WriteLine(description);
+        Console.Write("Enter the duration of the activity in seconds: ");
+        duration = int.Parse(Console.ReadLine());
+        Console.WriteLine(standardMessage);
+        PauseWithAnimation(3);
+    }
+
+    protected void DisplayEndingMessage()
+    {
+        Console.WriteLine(endingMessage);
+        Console.WriteLine($"You completed the activity for {duration} seconds.");
+        PauseWithAnimation(3);
+    }
+
+    protected void PauseWithAnimation(int seconds)
+    {
+        for (int i = 0; i < seconds; i++)
+        {
+            Console.Write(".");
+            Thread.Sleep(1000);
+        }
+        Console.WriteLine();
+    }
+
+    protected virtual void PerformActivity()
+    {
+        // To be overridden by derived classes
+    }
+}
+
+class Breath : Activity
+{
+    public Breath()
+    {
+        description = "This activity will help you relax by walking you through breathing in and out slowly. Clear your mind and focus on your breathing.";
+    }
+
+    protected override void PerformActivity()
+    {
+        int secondsElapsed = 0;
+        while (secondsElapsed < duration)
+        {
+            Console.WriteLine("Breathe in...");
+            PauseWithAnimation(3);
+            Console.WriteLine("Breathe out...");
+            PauseWithAnimation(3);
+            secondsElapsed += 6;
+        }
+    }
+}
+
+class Reflecting : Activity
+{
+    private static readonly List<string> Prompts = new List<string>
+    {
+        "Think of a time when you stood up for someone else.",
+        "Think of a time when you did something really difficult.",
+        "Think of a time when you helped someone in need.",
+        "Think of a time when you did something truly selfless."
+    };
+
+    private static readonly List<string> Questions = new List<string>
+    {
+        "Why was this experience meaningful to you?",
+        "Have you ever done anything like this before?",
+        "How did you get started?",
+        "How did you feel when it was complete?",
+        "What made this time different than other times when you were not as successful?",
+        "What is your favorite thing about this experience?",
+        "What could you learn from this experience that applies to other situations?",
+        "What did you learn about yourself through this experience?",
+        "How can you keep this experience in mind in the future?"
+    };
+
+    public Reflecting()
+    {
+        description = "This activity will help you reflect on times in your life when you have shown strength and resilience. This will help you recognize the power you have and how you can use it in other aspects of your life.";
+    }
+
+    protected override void PerformActivity()
+    {
+        Random rand = new Random();
+        Console.WriteLine(Prompts[rand.Next(Prompts.Count)]);
+        PauseWithAnimation(5);
+
+        int secondsElapsed = 0;
+        while (secondsElapsed < duration)
+        {
+            Console.WriteLine(Questions[rand.Next(Questions.Count)]);
+            PauseWithAnimation(5);
+            secondsElapsed += 5;
+        }
+    }
+}
+
+class Listing : Activity
+{
+    private static readonly List<string> Prompts = new List<string>
+    {
+        "Who are people that you appreciate?",
+        "What are personal strengths of yours?",
+        "Who are people that you have helped this week?",
+        "When have you felt the Holy Ghost this month?",
+        "Who are some of your personal heroes?"
+    };
+
+    public Listing()
+    {
+        description = "This activity will help you reflect on the good things in your life by having you list as many things as you can in a certain area.";
+    }
+
+    protected override void PerformActivity()
+    {
+        Random rand = new Random();
+        Console.WriteLine(Prompts[rand.Next(Prompts.Count)]);
+        PauseWithAnimation(5);
+
+        int count = 0;
+        int secondsElapsed = 0;
+        while (secondsElapsed < duration)
+        {
+            Console.Write("Enter an item: ");
+            Console.ReadLine();
+            count++;
+            secondsElapsed += 5;
+        }
+
+        Console.WriteLine($"You listed {count} items.");
     }
 }
