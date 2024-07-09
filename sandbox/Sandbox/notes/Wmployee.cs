@@ -1,4 +1,4 @@
-class Employee
+abstract class Employee
 {
     private string _name;
 
@@ -20,4 +20,7 @@ class Employee
     {
         return _name;
     }
+
+    public abstract double InsuranceCost();
+
 }

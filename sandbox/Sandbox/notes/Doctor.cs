@@ -10,4 +10,8 @@ class Doctor : Employee
     {
         return _salary / 52;
     }
+    public override double InsuranceCost()
+    {
+        return _salary * .03;
+    }
 }

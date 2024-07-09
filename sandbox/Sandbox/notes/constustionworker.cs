@@ -7,4 +7,8 @@ class ConstructionWorker : Employee
     {
         return base.Getpay() + 1000;
     }
+    public override double InsuranceCost()
+    {
+        return Getpay() * 4;
+    }
 }
